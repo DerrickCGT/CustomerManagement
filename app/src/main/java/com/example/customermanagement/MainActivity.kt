@@ -8,6 +8,12 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 
+// Student Name: Derrick choong
+// Student ID: 30066568
+// Program Description: Assist SMT Business to develop a program for customer management apps on Android Mobile
+// Date: 23/05/2023
+
+
 class MainActivity : AppCompatActivity() {
     @SuppressLint("CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
