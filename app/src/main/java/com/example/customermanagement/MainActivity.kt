@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
+    @SuppressLint("CutPasteId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -52,14 +53,21 @@ class MainActivity : AppCompatActivity() {
             tvCustomer.text = ""
 
             customerList.forEach {
-                tvCustomer.append("$it\n")
+                tvCustomer.append("$it\n\n")
             }
         }
 
         val btnDeleteCustomer = findViewById<Button>(R.id.btnDeleteCustomer)
         btnDeleteCustomer.setOnClickListener {
             val db = DBCustomer(this, null)
-            val customerID = etCustomerID.text.toString().toInt()
+            var customerID = 0
+            try{
+                customerID = etCustomerID.text.toString().toInt()
+            }
+            catch (e: Exception){
+                Toast.makeText(this, "Invalid Input! $e", Toast.LENGTH_SHORT).show()
+            }
+
             val rows = db.deleteCustomers(customerID)
 
             Toast.makeText(
@@ -78,7 +86,14 @@ class MainActivity : AppCompatActivity() {
         val btnUpdateCustomer = findViewById<Button>(R.id.btnUpdateCustomer)
         btnUpdateCustomer.setOnClickListener {
             val db = DBCustomer(this, null)
-            val customerID = etCustomerID.text.toString().toInt()
+            var customerID = 0
+            try{
+                customerID = etCustomerID.text.toString().toInt()
+            }
+            catch (e: Exception){
+                Toast.makeText(this, "Invalid Input! $e", Toast.LENGTH_SHORT).show()
+            }
+
             val name = etName.text.toString()
             val mobile = etMobile.text.toString()
             val email = etEmail.text.toString()
@@ -93,17 +108,41 @@ class MainActivity : AppCompatActivity() {
         val btnSearchCustomer = findViewById<Button>(R.id.btnSearch)
         btnSearchCustomer.setOnClickListener {
             val db = DBCustomer(this, null)
-            val customerID = etCustomerID.toString().toInt()
-            val rows = db.searchCustomers(customerID)
 
-            tvCustomer.text = "$rows"
+            val etCustomerName = findViewById<EditText>(R.id.etName)
+            val customerName = etCustomerName.text.toString()
+            if (customerName.isBlank()){
+                Toast.makeText(this, "Invalid Input", Toast.LENGTH_SHORT).show()
+                tvCustomer.text = ""
+            }
+            else {
+                val searchList = db.searchCustomers(customerName)
+
+                if (searchList.isEmpty()){
+                    tvCustomer.text = ""
+                    Toast.makeText(this, "Customer: $customerName not FOUND!", Toast.LENGTH_SHORT).show()
+                } else {
+                    tvCustomer.text = ""
+
+                    searchList.forEach {
+                        tvCustomer.append("$it\n\n")
+                    }
+                }
+            }
         }
 
-        val btnDeleteDatabase = findViewById<Button>(R.id.btnDeleteDatabase)
-        btnDeleteDatabase.setOnClickListener {
+
+
+
+        val btnResetDatabase = findViewById<Button>(R.id.btnResetDatabase)
+        btnResetDatabase.setOnClickListener {
             val db = DBCustomer(this, null)
             val isSuccessful = db.deleteDB()
-            Customer.resetID()
+            initialDB.addCustomers("Nick Scali", "0433388899", "nickscali@gmail.com")
+            initialDB.addCustomers("Jame Hard", "0432569874", "jameshard@gmail.com")
+            initialDB.addCustomers("Alice Wonderland", "0412345678", "alice@gmail.com")
+            initialDB.addCustomers("Ken Bek", "0432698556", "ken@gmail.com")
+            initialDB.addCustomers("Stuart G", "0495632140", "stuart@gmail.com")
 
             Toast.makeText(this,
                 when (isSuccessful) {

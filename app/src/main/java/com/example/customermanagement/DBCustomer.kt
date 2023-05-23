@@ -2,9 +2,9 @@ package com.example.customermanagement
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import androidx.core.content.contentValuesOf
 import javax.security.auth.Subject
 
@@ -24,7 +24,16 @@ SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION){
         val NAME = "name"
         val EMAIL = "email"
         val MOBILE = "mobile"
+        var latestId = 123000
 
+         private fun nextID(): Int {
+             latestId++
+             return latestId
+         }
+
+          fun resetID() {
+            latestId = 123000
+          }
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -45,11 +54,15 @@ SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION){
     }
 
     fun deleteDB(): Boolean {
+        resetID()
         return context.deleteDatabase(DB_NAME)
     }
 
     fun addCustomers(name: String, mobile: String, email: String) {
         val values = ContentValues()
+        val id = nextID()
+
+        values.put(ID, id)
         values.put(NAME, name)
         values.put(MOBILE, mobile)
         values.put(EMAIL, email)
@@ -65,16 +78,15 @@ SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION){
 
         val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME",null)
         val customerList = ArrayList<Customer>()
-        Customer.resetID()
 
         if (cursor.moveToFirst()) {
             do {
                 customerList.add(
                     Customer(
+                        cursor.getString(cursor.getColumnIndexOrThrow(ID)),
                         cursor.getString(cursor.getColumnIndexOrThrow(NAME)),
                         cursor.getString(cursor.getColumnIndexOrThrow(MOBILE)),
                         cursor.getString(cursor.getColumnIndexOrThrow(EMAIL))
-
                     )
                 )
             } while (cursor.moveToNext())
@@ -117,18 +129,26 @@ SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION){
         }
     }
 
-    fun searchCustomers(id: Int): Customer {
+    fun searchCustomers(name: String): ArrayList<Customer> {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $ID = $id",null)
+        val query = "SELECT * FROM $TABLE_NAME WHERE $NAME LIKE '%$name%'"
+        Log.d("Search Query", query)
+        val cursor = db.rawQuery(query, null)
 
-        val searchUser = Customer(
-            cursor.getString(cursor.getColumnIndexOrThrow(NAME)),
-            cursor.getString(cursor.getColumnIndexOrThrow(MOBILE)),
-            cursor.getString(cursor.getColumnIndexOrThrow(EMAIL))
-        )
+        val searchList = ArrayList<Customer>()
+
+        while (cursor.moveToNext()) {
+            val customer = Customer(
+                cursor.getString(cursor.getColumnIndexOrThrow(ID)),
+                cursor.getString(cursor.getColumnIndexOrThrow(NAME)),
+                cursor.getString(cursor.getColumnIndexOrThrow(MOBILE)),
+                cursor.getString(cursor.getColumnIndexOrThrow(EMAIL))
+            )
+            searchList.add(customer)
+        }
 
         cursor.close()
-        return searchUser
+        return searchList
     }
 
 
